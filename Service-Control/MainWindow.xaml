@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Service_Control"
         mc:Ignorable="d"
-        Title="Service Control" Height="560" Width="800">
+        Title="Service Control" Height="560" Width="800" FontFamily="Source Code Pro" FontSize="18">
     <Grid Margin="10">
 
         <Grid.RowDefinitions>
