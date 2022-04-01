@@ -83,8 +83,14 @@ namespace Service_Control {
             var service = (ServiceInfo)((Button)sender).Tag;
             Trace.WriteLine(service.Name);
             ServiceController sc = new ServiceController(service.Name);
-            sc.Start();
-            service.Status = "Running";
+            try {
+                sc.Start();
+                sc.WaitForStatus(ServiceControllerStatus.Running);
+                service.Status = "Running";
+            }
+            catch (Exception){
+                MessageBox.Show("Service could not be started, some services can't be started unless in use by other services.", "Starting issue", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }
