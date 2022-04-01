@@ -72,6 +72,8 @@ namespace Service_Control {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
             Trace.WriteLine(service.Name);
+            ServiceController sc = new ServiceController(service.Name);
+            sc.Stop();
             service.Status = "Stopped";
         }
 
@@ -80,6 +82,8 @@ namespace Service_Control {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
             Trace.WriteLine(service.Name);
+            ServiceController sc = new ServiceController(service.Name);
+            sc.Start();
             service.Status = "Running";
         }
     }
