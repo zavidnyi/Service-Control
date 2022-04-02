@@ -5,7 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Service_Control"
         mc:Ignorable="d"
-        Title="Service Control" Height="560" Width="800" FontFamily="Corbel" FontSize="18" Background="#FF36393E" Foreground="White">
+        Title="Service Control" Height="560" Width="900" FontFamily="Corbel" FontSize="18" Background="#FF36393E" Foreground="White">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="GridLine" Color="#FF36393E" />
+    </Window.Resources>
+    
     <Grid Margin="10">
 
         <Grid.RowDefinitions>
@@ -13,9 +18,15 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Label Foreground="White" FontSize="24" FontWeight="Bold">Service Control</Label>
+        <Label Foreground="White" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" Margin="0 10 0 10">Service Control ⚙</Label>
 
-        <DataGrid Name="serviceInfo" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" Background="#FF36393E" Foreground="White">
+        <DataGrid Name="serviceInfo" Grid.Row="1" ItemsSource="{Binding}" 
+                  AutoGenerateColumns="False" Background="#FF36393E" Foreground="White"
+                  HorizontalGridLinesBrush="{StaticResource GridLine}" VerticalGridLinesBrush="{StaticResource GridLine}"
+                  BorderBrush="{StaticResource GridLine}"
+                  IsReadOnly="True"
+                  RowHeight="60"
+        >
 
             <DataGrid.Resources>
                 <Style TargetType="{x:Type DataGrid}">
@@ -23,34 +34,47 @@
                 </Style>
                 <Style TargetType="{x:Type DataGridRow}">
                     <Setter Property="Background" Value="#FF36393E"/>
-                </Style>
-                <Style TargetType="{x:Type DataGridRowHeader}">
-                    <Setter Property="Background" Value="#FF36393E"/>
+                    <Setter Property="TextBlock.VerticalAlignment" Value="Center"/>
                 </Style>
                 <Style TargetType="{x:Type DataGridColumnHeader}">
-                    <Setter Property="Background" Value="#FF36393E"/>
+                    <Setter Property="Padding" Value="10 10 10 10"/>
+                    <Setter Property="Background" Value="#424549"/>
+                    <Setter Property="FontSize" Value="24"/>
+                    <Setter Property="TextBlock.FontWeight" Value="Bold"/>
                 </Style>
             </DataGrid.Resources>
             
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-				<DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}"  Width="*">
-					<DataGridTextColumn.ElementStyle>
-						<Style>
-							<Setter Property="TextBlock.TextWrapping" Value="Wrap" />
-						</Style>
-					</DataGridTextColumn.ElementStyle>
-				</DataGridTextColumn>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
-                <DataGridTemplateColumn Header="Stop Service">
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
+                <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}"  Width="2*">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip" Value="{Binding DisplayName}" />
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextTrimming" Value="wordEllipsis" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Stop" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Stop" Tag="{Binding}" Click="Stop" IsEnabled="{Binding CanBeStopped}">
+                            <Button Content="Stop" Tag="{Binding}" Click="Stop" IsEnabled="{Binding CanBeStopped}" Width="60" Height="30">
                                 <Button.Resources >
                                     <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="5"/>
+                                        <Setter Property="CornerRadius" Value="10"/>
                                     </Style>
                                     <Style TargetType="Button">
+                                        <Setter Property="BorderBrush" Value="Transparent" />
                                         <Setter Property="Background" Value="#ED4245"/>
                                     </Style>
                                 </Button.Resources>
@@ -58,27 +82,35 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Continue Service">
+                <DataGridTemplateColumn Header="Start" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Continue" Tag="{Binding}" Click="Continue" IsEnabled="{Binding CanBeContinued}">
+                            <Button Content="Start" Tag="{Binding}" Click="Continue" IsEnabled="{Binding CanBeContinued}" Width="60" Height="30">
                                 <Button.Resources >
                                     <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="5"/>
+                                        <Setter Property="CornerRadius" Value="10"/>
                                     </Style>
                                     <Style TargetType="Button">
                                         <Setter Property="Background" Value="#57F287"/>
-                                        <Style.Triggers>
-                                            <Trigger Property="IsEnabled" Value="False">
-                                                <Setter Property="Background" Value="Blue"/>
-                                            </Trigger>
-                                        </Style.Triggers>
+                                        <Setter Property="BorderBrush" Value="Transparent" />
                                     </Style>
                                 </Button.Resources>
                             </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="2*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextTrimming" Value="wordEllipsis" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip" Value="{Binding Account}" />
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
         

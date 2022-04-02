@@ -25,7 +25,6 @@ namespace Service_Control {
     /// 
 
     public class ServiceInfo : INotifyPropertyChanged {
-        private ServiceController _sc;
         private string _status;
         private bool _canBeStopped;
         private bool _canBeContinued;
@@ -37,6 +36,8 @@ namespace Service_Control {
                 if (_s != _status) {
                     _status = _s;
                     OnPropertyChanged("Status");
+                    CanBeStopped = Status == "Running" ? true : false;
+                    CanBeContinued = Status == "Stopped" ? true : false;
                 }
                 return _status;
             }
@@ -51,21 +52,18 @@ namespace Service_Control {
         public bool CanBeStopped { get => _canBeStopped; set { _canBeStopped = value; OnPropertyChanged("CanBeStopped"); } }
         public bool CanBeContinued { get => _canBeContinued; set { _canBeContinued = value; OnPropertyChanged("CanBeContinued"); } }
 
-        public ServiceInfo(ServiceController sc) {
-            _sc = sc;
-            Name = sc.ServiceName;
-            DisplayName = sc.DisplayName;
-            Status = sc.Status.ToString();
+        public ServiceInfo(ManagementObject so) {
+            Name = so["Name"].ToString();
+            DisplayName = so["DisplayName"].ToString();
+            Status = so["Status"].ToString();
             CanBeStopped = Status == "Running" ? true : false;
             CanBeContinued = Status == "Stopped" ? true : false;
-        }
-
-        private void GetAccountName(string serviceName) {
-            SelectQuery query = new SelectQuery(string.Format("SELECT * FROM Win32_Service WHERE Name='{0}'", serviceName));
-            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query)) {
-                foreach (ManagementObject s in searcher.Get()) {
-                    Trace.WriteLine(s["StartName"]);
-                }
+            try
+            {
+                Account = so["StartName"].ToString();
+            } catch (Exception)
+            {
+                Account = "I/O system";
             }
         }
 
@@ -80,7 +78,18 @@ namespace Service_Control {
 
         public MainWindow() {
             InitializeComponent();
-            services = new ObservableCollection<ServiceInfo>(ServiceController.GetServices().Select(x => new ServiceInfo(x)));
+            SelectQuery query = new SelectQuery(string.Format("SELECT * FROM Win32_Service"));
+            using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+            {
+                var col = searcher.Get();
+                ManagementObject[] arr = new ManagementObject[col.Count];
+                col.CopyTo(arr, 0);
+                services = new ObservableCollection<ServiceInfo>();
+                foreach (ManagementObject s in arr)
+                {
+                    services.Add( new ServiceInfo(s));
+                }
+            }
             serviceInfo.DataContext = services;
             System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(RefreshStatuses);
@@ -93,14 +102,12 @@ namespace Service_Control {
         private void Stop(object sender, RoutedEventArgs e) {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
-            Trace.WriteLine(service.Name);
             ServiceController sc = new ServiceController(service.Name);
             try {
                 sc.Stop();
                 sc.WaitForStatus(ServiceControllerStatus.Stopped);
                 service.Status = "Stopped";
-            } catch (Exception exp) {
-                Trace.WriteLine(exp.Message);
+            } catch (Exception) {
                 MessageBox.Show("Service could not be stopped.", "Stopping issue", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
@@ -108,15 +115,13 @@ namespace Service_Control {
         private void Continue(object sender, RoutedEventArgs e) {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
-            Trace.WriteLine(service.Name);
             ServiceController sc = new ServiceController(service.Name);
             try {
                 sc.Start();
                 sc.WaitForStatus(ServiceControllerStatus.Running);
                 service.Status = "Running";
             }
-            catch (Exception exp){
-                Trace.WriteLine(exp.Message);
+            catch (Exception){
                 MessageBox.Show("Service could not be started, some services can't be started unless in use by other services.", "Starting issue", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
