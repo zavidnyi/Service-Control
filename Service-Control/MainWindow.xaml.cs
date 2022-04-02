@@ -25,17 +25,34 @@ namespace Service_Control {
     /// 
 
     public class ServiceInfo : INotifyPropertyChanged {
+        private ServiceController _sc;
         private string _status;
         private bool _canBeStopped;
         private bool _canBeContinued;
         public string Name { get; set; }
         public string DisplayName { get; set; }
-        public string Status { get => _status; set { _status = value; OnPropertyChanged("Status"); CanBeStopped = Status == "Running" ? true : false; CanBeContinued = Status == "Stopped" ? true : false; } }
+        public string Status {
+            get {
+                string _s = new ServiceController(Name).Status.ToString();
+                if (_s != _status) {
+                    _status = _s;
+                    OnPropertyChanged("Status");
+                }
+                return _status;
+            }
+            set { 
+                _status = value; 
+                OnPropertyChanged("Status"); 
+                CanBeStopped = Status == "Running" ? true : false; 
+                CanBeContinued = Status == "Stopped" ? true : false; 
+            } 
+        }
         public string Account { get; set; }
         public bool CanBeStopped { get => _canBeStopped; set { _canBeStopped = value; OnPropertyChanged("CanBeStopped"); } }
         public bool CanBeContinued { get => _canBeContinued; set { _canBeContinued = value; OnPropertyChanged("CanBeContinued"); } }
 
         public ServiceInfo(ServiceController sc) {
+            _sc = sc;
             Name = sc.ServiceName;
             DisplayName = sc.DisplayName;
             Status = sc.Status.ToString();
@@ -57,28 +74,38 @@ namespace Service_Control {
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
+    public partial class MainWindow : Window {
+
+        private ObservableCollection<ServiceInfo> services;
+
+        public MainWindow() {
             InitializeComponent();
-            ObservableCollection<ServiceInfo> services = new ObservableCollection<ServiceInfo>(ServiceController.GetServices().Select(x => new ServiceInfo(x)));
-            Trace.WriteLine(services);
+            services = new ObservableCollection<ServiceInfo>(ServiceController.GetServices().Select(x => new ServiceInfo(x)));
             serviceInfo.DataContext = services;
+            System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(RefreshStatuses);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
         }
 
-        private void Stop(object sender, RoutedEventArgs e)
-        {
+        public void RefreshStatuses (object sender, EventArgs e) { foreach (ServiceInfo s in services) { var _ = s.Status; } }
+
+        private void Stop(object sender, RoutedEventArgs e) {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
             Trace.WriteLine(service.Name);
             ServiceController sc = new ServiceController(service.Name);
-            sc.Stop();
-            service.Status = "Stopped";
+            try {
+                sc.Stop();
+                sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                service.Status = "Stopped";
+            } catch (Exception exp) {
+                Trace.WriteLine(exp.Message);
+                MessageBox.Show("Service could not be stopped.", "Stopping issue", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
-        private void Continue(object sender, RoutedEventArgs e)
-        {
+        private void Continue(object sender, RoutedEventArgs e) {
             Button b = (Button)sender;
             var service = (ServiceInfo)((Button)sender).Tag;
             Trace.WriteLine(service.Name);
@@ -88,7 +115,8 @@ namespace Service_Control {
                 sc.WaitForStatus(ServiceControllerStatus.Running);
                 service.Status = "Running";
             }
-            catch (Exception){
+            catch (Exception exp){
+                Trace.WriteLine(exp.Message);
                 MessageBox.Show("Service could not be started, some services can't be started unless in use by other services.", "Starting issue", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }

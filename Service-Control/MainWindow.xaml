@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Service_Control"
         mc:Ignorable="d"
-        Title="Service Control" Height="560" Width="800" FontFamily="Source Code Pro" FontSize="18">
+        Title="Service Control" Height="560" Width="800" FontFamily="Corbel" FontSize="18" Background="#FF36393E" Foreground="White">
     <Grid Margin="10">
 
         <Grid.RowDefinitions>
@@ -13,9 +13,25 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Label>Names</Label>
+        <Label Foreground="White" FontSize="24" FontWeight="Bold">Service Control</Label>
 
-        <DataGrid Name="serviceInfo" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False">
+        <DataGrid Name="serviceInfo" Grid.Row="1" ItemsSource="{Binding}" AutoGenerateColumns="False" Background="#FF36393E" Foreground="White">
+
+            <DataGrid.Resources>
+                <Style TargetType="{x:Type DataGrid}">
+                    <Setter Property="Background" Value="#FF36393E"/>
+                </Style>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="Background" Value="#FF36393E"/>
+                </Style>
+                <Style TargetType="{x:Type DataGridRowHeader}">
+                    <Setter Property="Background" Value="#FF36393E"/>
+                </Style>
+                <Style TargetType="{x:Type DataGridColumnHeader}">
+                    <Setter Property="Background" Value="#FF36393E"/>
+                </Style>
+            </DataGrid.Resources>
+            
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
 				<DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}"  Width="*">
@@ -29,14 +45,37 @@
                 <DataGridTemplateColumn Header="Stop Service">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Stop" Tag="{Binding}" Click="Stop" IsEnabled="{Binding CanBeStopped}"/>
+                            <Button Content="Stop" Tag="{Binding}" Click="Stop" IsEnabled="{Binding CanBeStopped}">
+                                <Button.Resources >
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5"/>
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="#ED4245"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Continue Service">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Continue" Tag="{Binding}" Click="Continue" IsEnabled="{Binding CanBeContinued}"/>
+                            <Button Content="Continue" Tag="{Binding}" Click="Continue" IsEnabled="{Binding CanBeContinued}">
+                                <Button.Resources >
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5"/>
+                                    </Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="#57F287"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Background" Value="Blue"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
