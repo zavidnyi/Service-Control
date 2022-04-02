@@ -63,6 +63,8 @@ namespace Service_Control {
                 Account = so["StartName"].ToString();
             } catch (Exception)
             {
+                // According to https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-service
+                // Start Name is null when service was created by I/O system
                 Account = "I/O system";
             }
         }
@@ -78,6 +80,8 @@ namespace Service_Control {
 
         public MainWindow() {
             InitializeComponent();
+            
+            // Find all availiable services
             SelectQuery query = new SelectQuery(string.Format("SELECT * FROM Win32_Service"));
             using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
             {
@@ -91,16 +95,21 @@ namespace Service_Control {
                 }
             }
             serviceInfo.DataContext = services;
+            // Update statuses of services once evry second
+            // There used to be an event which is triggered when status is changes, but it was in 2008
             System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(RefreshStatuses);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
         }
 
+        // Refreshes statuses by calling property getter, which will trigger an update if status is changed
         public void RefreshStatuses (object sender, EventArgs e) { foreach (ServiceInfo s in services) { var _ = s.Status; } }
 
         private void Stop(object sender, RoutedEventArgs e) {
             Button b = (Button)sender;
+            // I really don't like this type casts
+            // But I failed to figure out how to correctly use bindings :)
             var service = (ServiceInfo)((Button)sender).Tag;
             ServiceController sc = new ServiceController(service.Name);
             try {
